@@ -1,62 +1,79 @@
-// Theme Switching
-const themeToggle = document.getElementById('theme-toggle');
-let currentTheme = 'light';
-
-function toggleTheme() {
-    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', currentTheme);
-}
-
-themeToggle.addEventListener('click', toggleTheme);
-
-// Intersection Observer for animations
-const animatedElements = document.querySelectorAll('.animate-up');
-let delay = 0;
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-            entry.target.style.animationDelay = `${delay}s`;
-            entry.target.style.animationPlayState = 'running';
-            delay += 0.2;
-            observer.unobserve(entry.target);
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile Menu Toggle
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const menuIcon = document.querySelector('.menu-icon');
+    
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('active');
+        menuIcon.classList.toggle('active');
     });
-}, {
-    threshold: 0.1
-});
 
-animatedElements.forEach((element) => {
-    element.style.animationPlayState = 'paused';
-    observer.observe(element);
-});
+    // Animated Feature Cards
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
 
-// Mobile Navigation
-const mobileNav = document.querySelector('.main-nav');
-const mobileNavToggle = document.createElement('button');
-mobileNavToggle.classList.add('mobile-nav-toggle');
-mobileNavToggle.innerHTML = `
-    <svg viewBox="0 0 24 24" width="24" height="24">
-        <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-`;
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const delay = entry.target.dataset.delay || 0;
+                setTimeout(() => {
+                    entry.target.classList.add('animate-in');
+                }, delay * 1000);
+            }
+        });
+    }, observerOptions);
 
-document.querySelector('.header-container').insertBefore(mobileNavToggle, mobileNav);
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach(card => observer.observe(card));
 
-mobileNavToggle.addEventListener('click', () => {
-    mobileNav.classList.toggle('active');
-});
+    // Update Copyright Year
+    const yearElement = document.getElementById('currentYear');
+    yearElement.textContent = new Date().getFullYear();
 
-// Smooth Scrolling
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
+    // Smooth Scroll for Navigation Links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                // Close mobile menu if open
+                mobileMenu.classList.remove('active');
+                menuIcon.classList.remove('active');
+            }
+        });
     });
+
+    // Add scroll-based animations
+    const animateOnScroll = () => {
+        const elements = document.querySelectorAll('.content-section');
+        elements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const elementBottom = element.getBoundingClientRect().bottom;
+            const isVisible = (elementTop < window.innerHeight) && (elementBottom > 0);
+            
+            if (isVisible) {
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
+            }
+        });
+    };
+
+    // Initial styles for content sections
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'all 0.6s ease-out';
+    });
+
+    // Add scroll event listener
+    window.addEventListener('scroll', animateOnScroll);
+    // Initial check for elements in view
+    animateOnScroll();
 });
